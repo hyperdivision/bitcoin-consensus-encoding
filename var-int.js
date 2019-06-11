@@ -50,10 +50,10 @@ function encode (number, buf, offset) {
 }
 
 function encodingLength (number) {
-  return number < 0xfd ? 1
-    : number < 0xffff ? 3
-      : number < 0xffffffff ? 5
-        : 9
+  if (number < 0xfd) return 1
+  if (number < 0xffff) return 3
+  if (number < 0xffffffff) return 5
+  return 9
 }
 
 function decode (buf, offset) {
