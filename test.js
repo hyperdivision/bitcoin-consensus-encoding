@@ -1,22 +1,50 @@
+const test = require('tape')
 var varint = require('./var-int.js')
 var stringer = require('./string.js')
 var booler = require('./boolean.js')
 var fs = require('fs')
 
-//varint
-try {
-  console.log(varint.encode(null))
-} catch (err) { console.log(err.code) }
-try {
-  console.log(varint.encode(0xfff))
-} catch (err) { console.log(err.code) }
-try {
-  console.log(varint.encode(BigInt("0xfefafefff")))
-} catch (err) { console.log(err.code) }
-try {
-  console.log(varint.encode(BigInt("0xfeeeeeeeeeeeeeee")))
-} catch (err) { console.log(err.code) }
+test('varint encode', function (assert) {
+  assert.throws(() => varint.encode(null))
+  assert.ok(varint.encode.bytes == null)
+  assert.throws(() => varint.encode(false))
+  assert.ok(varint.encode.bytes == null)
+  assert.throws(() => varint.encode(true))
+  assert.ok(varint.encode.bytes == null)
 
+  // tests from https://docs.rs/bitcoin/0.18.0/src/bitcoin/consensus/encode.rs.html#15-893
+  assert.same(varint.encode(10), Buffer.from([10]))
+  assert.same(varint.encode.bytes, 1)
+  assert.same(varint.encode(0xfc), Buffer.from([0xfc]))
+  assert.same(varint.encode.bytes, 1)
+  assert.same(varint.encode(0xfd), Buffer.from([0xfd, 0xfd, 0]))
+  assert.same(varint.encode.bytes, 3)
+  assert.same(varint.encode(0xf0f0f0f), Buffer.from([0xfe, 0xf, 0xf, 0xf, 0xf]))
+  assert.same(varint.encode.bytes, 5)
+  assert.same(varint.encode(BigInt('0xF0F0F0F0F0E0')), Buffer.from([0xFF, 0xE0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0, 0]))
+  assert.same(varint.encode.bytes, 9)
+
+  assert.same(varint.encode(BigInt('0xF0F0F0F0F0E0'), Buffer.alloc(5)), Buffer.from([0xFF, 0xE0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0, 0]))
+  assert.same(varint.encode.bytes, 9)
+  assert.end()
+})
+
+test('varint decode', function (assert) {
+  assert.throws(() => varint.decode(null))
+  assert.ok(varint.decode.bytes == null)
+  assert.throws(() => varint.decode(false))
+  assert.ok(varint.decode.bytes == null)
+  assert.throws(() => varint.decode(true))
+  assert.ok(varint.encode.bytes == null)
+
+  assert.throws(() => varint.decode(true))
+  assert.ok(varint.encode.bytes == null)
+
+  // tests from https://docs.rs/bitcoin/0.18.0/src/bitcoin/consensus/encode.rs.html#15-893
+  assert.end()
+})
+
+return
 // varint.decode
 try {
   console.log(varint.decode(Buffer.from(null)))
