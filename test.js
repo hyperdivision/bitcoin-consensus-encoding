@@ -11,10 +11,10 @@ try {
   console.log(varint.encode(0xfff))
 } catch (err) { console.log(err.code) }
 try {
-  console.log(varint.encode(0xfefafefffn))
+  console.log(varint.encode(BigInt("0xfefafefff")))
 } catch (err) { console.log(err.code) }
 try {
-  console.log(varint.encode(0xfeeeeeeeeeeeeeeen))
+  console.log(varint.encode(BigInt("0xfeeeeeeeeeeeeeee")))
 } catch (err) { console.log(err.code) }
 
 // varint.decode

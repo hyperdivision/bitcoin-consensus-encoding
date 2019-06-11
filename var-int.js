@@ -9,7 +9,8 @@ module.exports = {
 
 function encode (number, buf, offset) {
   assert(Number.isInteger(number) || typeof number === 'bigint', 'input must be of type Integer')
-  assert((number >= 0 && number < 0xffffffffffffffffn), 'input out of range')
+  // HACK: Using the BigInt function to get around standard for now
+  assert((number >= 0 && number < BigInt("0xffffffffffffffff")), 'input out of range')
   if (!buf) buf = Buffer.alloc(encodingLength(number))
   assert(Buffer.isBuffer(buf), 'buf must be a Buffer instance.')
   if (!offset) offset = 0
