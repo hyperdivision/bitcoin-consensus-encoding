@@ -11,9 +11,12 @@ function encode (number, buf, offset) {
   // eslint-disable-next-line valid-typeof
   assert(Number.isInteger(number) || typeof number === 'bigint', 'input must be of type Integer')
   // HACK: Using the BigInt function to get around standard for now
-  assert((number >= 0 && number < BigInt("0xffffffffffffffff")), 'input out of range')
-  if (!buf) buf = Buffer.alloc(encodingLength(number))
+  assert((number >= 0 && number < BigInt('0xffffffffffffffff')), 'input out of range')
+
+  var minLength = encodingLength(number)
+  if (!buf) buf = Buffer.alloc(minLength)
   assert(Buffer.isBuffer(buf), 'buf must be a Buffer instance.')
+  assert(buf.byteLength >= minLength, 'buf must be long enough to contain number')
   if (!offset) offset = 0
 
   // 8 bit
