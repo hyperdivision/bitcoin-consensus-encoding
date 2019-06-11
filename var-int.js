@@ -4,10 +4,11 @@ var bigUIntLE = require('biguintle')
 module.exports = {
   encode: encode,
   decode: decode,
-  encodingLength: encodingLength,
+  encodingLength: encodingLength
 }
 
 function encode (number, buf, offset) {
+  // eslint-disable-next-line valid-typeof
   assert(Number.isInteger(number) || typeof number === 'bigint', 'input must be of type Integer')
   // HACK: Using the BigInt function to get around standard for now
   assert((number >= 0 && number < BigInt("0xffffffffffffffff")), 'input out of range')

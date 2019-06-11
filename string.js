@@ -20,7 +20,7 @@ function encode (string, buf, offset) {
 
 function encodingLength (string) {
   if (Buffer.isBuffer(string) === false) string = Buffer.from(string)
-  return (varint.encodingLength(string.byteLength) + string.byteLength)
+  return varint.encodingLength(string.byteLength) + string.byteLength
 }
 
 function decode (buf, offset) {
