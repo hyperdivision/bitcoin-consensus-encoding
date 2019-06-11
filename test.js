@@ -1,7 +1,8 @@
-var varint = require('./var-uint.js')
-var stringer = require('./string-encoder.js')
+var varint = require('./var-int.js')
+var stringer = require('./string.js')
 var booler = require('./boolean.js')
 var fs = require('fs')
+
 //varint
 try {
   console.log(varint.encode(null))
@@ -35,10 +36,8 @@ try {
   console.log(stringer.encode('where are you?'))
 } catch (err) { console.log(err.code) }
 try {
-  fs.readFile('./var-uint.js', function (err, data) {
-    if (err) throw err
-    console.log(stringer.encode(data.toString()))
-  })
+   var data = fs.readFileSync('./var-int.js')
+  console.log(stringer.encode(data.toString()))
 } catch (err) { console.log(err.code) }
 
 // string.decode
@@ -55,4 +54,4 @@ try {
 } catch (err) { console.log(err.code) }
 try {
   console.log(booler.encode(1 < 0))
-}
+} catch (err) {console.log(err.code) }

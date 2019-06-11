@@ -1,5 +1,5 @@
 var assert = require('nanoassert')
-var varint = require('./var-uint.js')
+var varint = require('./var-int.js')
 
 module.exports = {
   encode: encode,
@@ -12,9 +12,7 @@ function encode (string, buf, offset) {
   if (!offset) offset = 0
 
   var stringBytes = Buffer.from(string)
-  console.log(stringBytes.byteLength, encodingLength(string))
   varint.encode(stringBytes.byteLength, buf, offset)
-  console.log(varint.encode.bytes)
   buf.set(stringBytes, offset + varint.encode.bytes)
   encode.bytes = varint.encode.bytes + stringBytes
   return buf

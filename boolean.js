@@ -11,8 +11,8 @@ function encode (bool, buf, offset) {
   if (!buf) buf = Buffer.alloc(1)
   if (!offset) offset = 0
 
-  let writeValue = bool ? 1 : 0
-  buf.set(writeValue, offset)
+  buf[offset] = bool ? 1 : 0
+  encode.bytes = 1
   return buf
 }
 
@@ -21,6 +21,7 @@ function decode (buf, offset) {
   if (!offset) offset = 0
   let readValue = buf.readUInt8(offset)
 
+  decode.bytes = 1
   return (readValue === 1)
 }
 
