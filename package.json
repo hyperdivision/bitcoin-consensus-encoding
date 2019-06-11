@@ -1,0 +1,15 @@
+{
+  "name": "encoding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "string-encoder.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "biguintle": "^1.0.1",
+    "nanoassert": "^2.0.0"
+  }
+}
