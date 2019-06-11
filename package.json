@@ -1,15 +1,36 @@
 {
-  "name": "encoding",
-  "version": "1.0.0",
-  "description": "",
-  "main": "string-encoder.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "bitcoin-consensus-encoding",
+  "version": "0.0.0",
+  "description": "Abstract encoding for Bitcoin related objects",
+  "main": "index.js",
+  "publishConfig": {
+    "access": "public"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "biguintle": "^1.0.1",
     "nanoassert": "^2.0.0"
-  }
+  },
+  "devDependencies": {
+    "standard": "^12.0.1",
+    "tape": "^4.10.2"
+  },
+  "scripts": {
+    "pretest": "standard",
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyperdivision/bitcoin-consensus-encoding.git"
+  },
+  "keywords": [],
+  "author": "Hyperdivision ApS <opensource@hyperdivision.dk>",
+  "contributors": [
+    "Christophe Diederichs <chm-diederichs@hyperdivision.dk>",
+    "Emil Bay <emilbayes@hyperdivision.dk>"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hyperdivision/bitcoin-consensus-encoding/issues"
+  },
+  "homepage": "https://github.com/hyperdivision/bitcoin-consensus-encoding#readme"
 }
