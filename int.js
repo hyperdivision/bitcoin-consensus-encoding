@@ -1,6 +1,12 @@
 var assert = require('nanoassert')
 var bigUIntLE = require('biguintle')
 
+module.exports = {
+  encode: encode,
+  decode: decode,
+  encodingLength: encodingLength
+}
+
 function encode (number, buf, offset, bits) {
   var validBits = [8, 16, 32, 64]
   assert(validBits.includes(bits), 'bit length not supported')
@@ -43,16 +49,18 @@ function encodingLength (bits) {
   return (bits / 8)
 }
 
-function decode (buf, offset) {
+function decode (buf, offset, byteLength) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
-  console.log(buf.byteLength)
-  switch (buf.byteLength) {
+  if (!offset) offset = 0
+  if (!byteLength) byteLength = buf.byteLength - offset
+  assert(byteLength <= 8, 'input buffer must be at most 8 bytes')
+  switch (byteLength) {
     case 8 : {
       var low = BigInt(buf.readUInt32LE())
       var high = BigInt(buf.readUInt32LE(4)) * 256n ** 4n
 
       var result = high + low
-      return result < 2n ** 6n ? result : result - 2n ** 64n
+      return result < 2n ** 64n ? result : result - 2n ** 64n
     }
 
     case 4 : {
@@ -68,10 +76,3 @@ function decode (buf, offset) {
     }
   }
 }
-
-var test = encode(-(2n ** 61n + 760n), null, null, 64)
-console.log(test)
-console.log(decode(test))
-console.log(-(2n ** 61n + 760n))
-// console.log(decode(test))
-// console.log(decode(test) + (2 ** 61 + 760))
