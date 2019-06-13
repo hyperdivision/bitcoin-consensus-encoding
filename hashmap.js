@@ -5,9 +5,10 @@ var string = require('./string')
 var boolean = require('./boolean.js')
 var int = require('./int.js')
 
-function encode (hashmap, buf, offset) {
+// encode a hashmap with the key/value types specified - 0: numbers, 1: strings
+function encode (hashmap, keyType, valueType, buf, offset) {
   assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
-  var length = encodingLength(hashmap)
+  var length = encodingLength(hashmap, keyType, valueType)
   if (!buf) buf = Buffer.alloc(length)
   if (!offset) offset = 0
 
@@ -18,117 +19,114 @@ function encode (hashmap, buf, offset) {
   offset += 8
 
   for (var [key, value] of hashmap) {
-    var encodedKey = encoding(key)
-    var writeKey = Buffer.concat([encoding.type, encodedKey])
-    buf.set(writeKey, offset)
+    var encodedKey = encodeItem(key, keyType)
+    buf.set(encodedKey, offset)
 
-    offset += encoding.bytes
+    offset += encodeItem.bytes
 
-    var encodedValue = encoding(value)
-    var writeValue = Buffer.concat([encoding.type, encodedValue])
-    buf.set(writeValue, offset)
+    var encodedValue = encodeItem(value, valueType)
+    buf.set(encodedValue, offset)
 
-    offset += encoding.bytes
+    offset += encodeItem.bytes
   }
 
   encode.bytes = length
   return buf
 }
 
-function decode (buf, offset) {
+// pass an consensus-encoded hashmap as a buffer with key/value types specified - 0: numbers, 1: strings
+function decode (buf, keyType, valueType, offset) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
 
-  console.log(buf, 'input buffer')
   var entries = int.decode(buf, offset, 8)
-  console.log(entries)
   var hashmap = new Map()
   offset += 8
 
   for (var i = 0; i < entries * 2n; i++) {
     if (i % 2 === 0) {
-      var key = decoding(buf, offset)
+      var key = decodeItem(buf, keyType, offset)
     } else {
-      var value = decoding(buf, offset)
+      var value = decodeItem(buf, valueType, offset)
       hashmap.set(key, value)
     }
-    offset += decoding.bytes
+    offset += decodeItem.bytes
   }
   return hashmap
 }
 
-function encodingLength (hashmap) {
-  var length = 9
+// returns the number of bytes required to encode a given hashmap
+// requires double computing as the length of each entry is unknown
+function encodingLength (hashmap, keyType, valueType) {
+  var length = 8
   for (var [key, value] of hashmap) {
-    encoding(key)
-    length += encoding.bytes
+    encodeItem(key, keyType)
+    length += encodeItem.bytes
 
-    encoding(value)
-    length += encoding.bytes
+    encodeItem(value, valueType)
+    length += encodeItem.bytes
   }
   return length
 }
 
-function encoding (item) {
-  const validTypes = ['string', 'bigint', 'boolean', 'number']
+// function to encode a particular key/value
+function encodeItem (item, type) {
+  assert([0, 1].includes(type), 'kv types must be specified')
+  const validTypes = ['bigint', 'number']
   assert(validTypes.includes(typeof item), 'invalid input')
 
   var encodedItem
-  var encodedType = Buffer.alloc(1)
 
-  switch (typeof item) {
-    case ('number' || 'bigint') :
-      encodedItem = varint.encode(item)
-      encoding.bytes = varint.encode.bytes + 1
-      encodedType.writeUInt8(0)
-      break
-
-    case 'string' :
-      encodedItem = string.encode(item)
-      encoding.bytes = string.encode.bytes + 1
-      encodedType.writeUInt8(1)
-      break
-
-    case 'boolean' :
-      encodedItem = boolean.encode(item)
-      encoding.bytes = boolean.encode.bytes + 1
-      encodedType.writeUInt8(2)
-      break
-  }
-  encoding.type = encodedType
-  return encodedItem
-}
-
-function decoding (item, offset) {
-  assert(Buffer.isBuffer(item), 'unknown input type')
-
-  var decodedItem
-  var encodedType = item.readUInt8(offset)
-
-  switch (encodedType) {
+  switch (type) {
     case 0 : {
-      decodedItem = varint.decode(item, offset + 1)
-      decoding.bytes = varint.decode.bytes + 1
+      encodedItem = varint.encode(item)
+      encodeItem.bytes = varint.encode.bytes
       break
     }
 
     case 1 : {
-      decodedItem = string.decode(item, offset + 1)
-      decoding.bytes = string.decode.bytes + 1
-      break
-    }
-
-    case 2 : {
-      decodedItem = boolean.decode(item, offset + 1)
-      decoding.bytes = boolean.decode.bytes + 1
+      encodedItem = string.encode(item)
+      encodeItem.bytes = string.encode.bytes
       break
     }
   }
-  return decodedItem
+
+  return encodedItem
 }
 
-var hashmap = new Map()
+// redundant function
+function encodeBoolean (item) {
+  assert(typeof item === 'boolean', 'invalid input')
 
-for (var i = 0; i < 10000; i++) {
-  hashmap.set(i, i * 2)
+  var encodedItem
+
+  encodedItem = boolean.encode(item)
+  encodeItem.bytes = boolean.encode.bytes + 1
+  encodedType.writeUInt8(2)
+
+  return encodedItem
+}
+
+// function to decode a given key/value
+function decodeItem (item, type, offset) {
+  assert([0, 1].includes(type), 'kv types must be specified')
+  assert(Buffer.isBuffer(item), 'unknown input type')
+
+  var decodedItem
+
+  switch (type) {
+    case 0 : {
+      decodedItem = varint.decode(item, offset)
+      decodeItem.bytes = varint.decode.bytes
+      break
+    }
+
+    case 1 : {
+      decodedItem = string.decode(item, offset)
+      decodeItem.bytes = string.decode.bytes
+      break
+    }
+  }
+
+  return decodedItem
 }
