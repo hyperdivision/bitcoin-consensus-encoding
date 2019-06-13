@@ -3,6 +3,7 @@ var bigUIntLE = require('biguintle')
 var varint = require('./var-int.js')
 var string = require('./string')
 var boolean = require('./boolean.js')
+var int = require('./int.js')
 
 function encode (hashmap, buf, offset) {
   assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
@@ -10,33 +11,11 @@ function encode (hashmap, buf, offset) {
   if (!buf) buf = Buffer.alloc(length)
   if (!offset) offset = 0
 
-  var entries = varint.encode(hashmap.size)
-  // TODO: write int encoder - encode entries as u64 directly -> header  = Buffer.alloc(8)
-  var header = Buffer.alloc(9)
-  header.writeUInt8(0xff, 0)
-
-  // encode number of entries as UInt64: in line with to rust-bitcoin lib
-  // unnecessary with int.encode
-  switch (varint.encode.bytes) {
-    case 1 :
-      header.fill(entries, 1, 2)
-      break
-
-    case 3 :
-      header.set(entries.subarray(1), 1, 3)
-      break
-
-    case 5 :
-      header.fill(entries.subarray(1), 1, 5)
-      break
-
-    case 9 :
-      header.fill(entries)
-      break
-  }
+  var entries = int.encode(BigInt(hashmap.size), null, null, 64)
+  var header = Buffer.alloc(8, entries)
 
   buf.set(header, offset)
-  offset += 9
+  offset += 8
 
   for (var [key, value] of hashmap) {
     var encodedKey = encoding(key)
@@ -60,10 +39,11 @@ function decode (buf, offset) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
 
-  // TODO: use int64 decode -> offset += 8
-  var entries = varint.decode(buf, offset)
+  console.log(buf, 'input buffer')
+  var entries = int.decode(buf, offset, 8)
+  console.log(entries)
   var hashmap = new Map()
-  offset += 9
+  offset += 8
 
   for (var i = 0; i < entries * 2n; i++) {
     if (i % 2 === 0) {
@@ -90,12 +70,8 @@ function encodingLength (hashmap) {
 }
 
 function encoding (item) {
-  // var validTypes = ['string']
   const validTypes = ['string', 'bigint', 'boolean', 'number']
   assert(validTypes.includes(typeof item), 'invalid input')
-  // assert((typeof item === 'string') ||
-  // (typeof item = 'bigint') ||
-  // (typeof = 'boolean') || (Number.isInteger(item)), 'unknown input type')
 
   var encodedItem
   var encodedType = Buffer.alloc(1)
@@ -156,7 +132,3 @@ var hashmap = new Map()
 for (var i = 0; i < 10000; i++) {
   hashmap.set(i, i * 2)
 }
-
-var testEncode = encode(hashmap)
-var testDecode = decode(testEncode)
-console.log(testDecode)
