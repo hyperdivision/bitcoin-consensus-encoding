@@ -14,7 +14,7 @@ function encode (string, buf, offset) {
   var stringBytes = Buffer.from(string)
   varint.encode(stringBytes.byteLength, buf, offset)
   buf.set(stringBytes, offset + varint.encode.bytes)
-  encode.bytes = varint.encode.bytes + stringBytes
+  encode.bytes = varint.encode.bytes + stringBytes.byteLength
   return buf
 }
 
@@ -26,21 +26,9 @@ function encodingLength (string) {
 function decode (buf, offset) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
-  var first = buf.readUInt8(offset)
+  var stringLength = varint.decode(buf, offset)
+  var stringStart = offset + varint.decode.bytes
 
-  if (first < 0xfd) {
-    return buf.toString('utf8', offset + 1)
-  }
-
-  if (first === 0xfd) {
-    return buf.toString('utf8', offset + 3)
-  }
-
-  if (first === 0xfe) {
-    return buf.toString('utf8', offset + 5)
-  }
-
-  if (first === 0xff) {
-    return buf.toString('utf8', offset + 9)
-  }
+  decode.bytes = stringStart + stringLength - offset
+  return buf.toString('utf8', stringStart, stringStart + stringLength)
 }
