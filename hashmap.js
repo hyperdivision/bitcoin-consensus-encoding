@@ -19,15 +19,12 @@ function encode (hashmap, keyType, valueType, buf, offset) {
   offset += 8
 
   for (var [key, value] of hashmap) {
-    var encodedKey = encodeItem(key, keyType)
-    buf.set(encodedKey, offset)
+    for (item of [key, value]) {
+      var encodedKey = encodeItem(key, keyType)
+      buf.set(encodedKey, offset)
 
-    offset += encodeItem.bytes
-
-    var encodedValue = encodeItem(value, valueType)
-    buf.set(encodedValue, offset)
-
-    offset += encodeItem.bytes
+      offset += encodeItem.bytes
+    }
   }
 
   encode.bytes = length
@@ -90,19 +87,6 @@ function encodeItem (item, type) {
       break
     }
   }
-
-  return encodedItem
-}
-
-// redundant function
-function encodeBoolean (item) {
-  assert(typeof item === 'boolean', 'invalid input')
-
-  var encodedItem
-
-  encodedItem = boolean.encode(item)
-  encodeItem.bytes = boolean.encode.bytes + 1
-  encodedType.writeUInt8(2)
 
   return encodedItem
 }
