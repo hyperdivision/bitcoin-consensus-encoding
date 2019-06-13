@@ -5,7 +5,7 @@ var string = require('./string')
 var boolean = require('./boolean.js')
 var int = require('./int.js')
 
-// encode a hashmap with the key/value types specified - 0: numbers, 1: strings
+// encode hashmap with key/value types specified - numbers: 0, strings: 1
 function encode (hashmap, keyType, valueType, buf, offset) {
   assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
   var length = encodingLength(hashmap, keyType, valueType)
@@ -31,7 +31,8 @@ function encode (hashmap, keyType, valueType, buf, offset) {
   return buf
 }
 
-// pass an consensus-encoded hashmap as a buffer with key/value types specified - 0: numbers, 1: strings
+// pass an consensus-encoded hashmap as a buffer
+// specify key/value types - numbers: 0, strings: 1
 function decode (buf, keyType, valueType, offset) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
