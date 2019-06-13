@@ -13,8 +13,9 @@ function encode (number, buf, offset, bits) {
   var stringLength = number.toString(2).length
   var bitLength = number < 0 ? stringLength : stringLength - 1
   assert(bitLength < bits, 'too few bits provided')
+  var encodingLength = encodingLength(bits)
 
-  if (!buf) buf = Buffer.alloc(encodingLength(bits))
+  if (!buf) buf = Buffer.alloc(encodingLength)
   if (!offset) offset = 0
 
   switch (bits) {
@@ -41,7 +42,7 @@ function encode (number, buf, offset, bits) {
     }
   }
 
-  encode.bytes = (bits / 8)
+  encode.bytes = encodingLength
   return buf
 }
 
@@ -64,15 +65,15 @@ function decode (buf, offset, byteLength) {
     }
 
     case 4 : {
-      return buf.readUInt32LE()
+      return buf.readInt32LE()
     }
 
     case 2 : {
-      return buf.readUInt16LE()
+      return buf.readInt16LE()
     }
 
     case 1 : {
-      return buf.readUInt8()
+      return buf.readInt8()
     }
   }
 }

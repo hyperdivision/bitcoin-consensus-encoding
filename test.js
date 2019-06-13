@@ -1,6 +1,6 @@
 const test = require('tape')
 var varint = require('./var-int.js')
-var stringer = require('./string.js')
+var string = require('./string.js')
 var booler = require('./boolean.js')
 var fs = require('fs')
 
@@ -42,6 +42,17 @@ test('varint decode', function (assert) {
 
   // tests from https://docs.rs/bitcoin/0.18.0/src/bitcoin/consensus/encode.rs.html#15-893
   assert.end()
+})
+
+test.only('string encode', function (assert) {
+  assert.throws(() => string.encode(null))
+  assert.ok(string.encode.bytes == null)
+  assert.throws(() => stirng.encode(false))
+  assert.ok(string.encode.bytes == null)
+  assert.throws(() => string)
+  assert.ok(string.encode.bytes == null)
+
+  assert.same(string.encode("Andrew".toString()), Buffer.from([0x41, 0x6e, 0x64, 0x72, 0x65, 0x77]))
 })
 
 return
