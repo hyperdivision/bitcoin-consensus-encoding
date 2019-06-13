@@ -79,6 +79,6 @@ function decode (buf, offset) {
 
   if (first === 0xff) {
     decode.bytes = 9
-    return bigUIntLE.decode(buf, offset + 1)
+    return bigUIntLE.decode(buf, offset + 1, 8)
   }
 }
