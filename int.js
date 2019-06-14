@@ -50,18 +50,22 @@ function encodingLength (bits) {
   return (bits / 8)
 }
 
-function decode (buf, offset, byteLength) {
+function decode (buf, offset, byteLength, unsigned = true) {
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
   if (!byteLength) byteLength = buf.byteLength - offset
   assert(byteLength <= 8, 'input buffer must be at most 8 bytes')
+
+  var result
+
   switch (byteLength) {
     case 8 : {
       var low = BigInt(buf.readUInt32LE())
       var high = BigInt(buf.readUInt32LE(4)) * 256n ** 4n
 
-      var result = high + low
-      return result < 2n ** 64n ? result : result - 2n ** 64n
+      result = high + low
+      unsigned = result < 2n ** 63n ? false : unsigned
+      return unsigned ? result : result - 2n ** 64n
     }
 
     case 4 : {

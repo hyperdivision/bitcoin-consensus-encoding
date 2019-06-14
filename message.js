@@ -4,14 +4,13 @@ var varint = require('./var-int.js')
 var int = require('./int.js')
 var uint = require('./uint.js')
 var string = require('./string.js')
+var command = require('./command.js')
 
 module.exports = {
   encode: encode,
   decode: decode,
   encodingLength: encodingLength
 }
-var knownCommands = [
-]
 
 var magicValues = {
   'main': 0xD9B4BEF9,
@@ -20,41 +19,33 @@ var magicValues = {
   'namecoin': 0xFEB4BEF9
 }
 
-function encode (payload, command, network, buf, offset) {
+function encode (payload, inputCommand, network, buf, offset) {
   if (!Buffer.isBuffer(payload)) {
     assert(typeof payload === 'string', 'payload must be sequence of characters')
     payload = Buffer.from(payload)
   }
-  if (!Buffer.isBuffer(command)) {
-    assert(typeof command === 'string', 'invalid command')
-    command = Buffer.from(command)
-  }
+
   if (!offset) offset = 0
   if (!buf) buf = Buffer.alloc(encodingLength(payload))
 
   assert(magicValues.keys.includes(network))
-  var magic = int.encode(magicValues[network], null, null, 32)
+  int.encode(magicValues[network], buf, offset, 32)
+  offset += int.encode.bytes
 
-  assert(command.byteLength <= 12, 'invalid command')
-  var commandBuf = Buffer.alloc(12, command)
-  commandBuf.fill(null, command.byteLength)
+  command.encode(inputCommand, buf, offset)
+  offset += command.encode.bytes
 
-  var length = int.encode(payload.byteLength, null, null, 32)
+  int.encode(payload.byteLength, buf, offset, 32)
+  offset += int.encode.bytes
+
   var doubleSHA = Buffer.alloc(sodium.crypto_hash_sha256_BYTES)
   sodium.crypto_hash_sha256(payload, doubleSHA)
   sodium.crypto_hash_sha256(doubleSHA, doubleSHA)
 
-  var checkSum = Buffer.alloc(4, doubleSHA)
+  buf.set(doubleSHA.subarry(0, 4), offset)
+  buf.set(payload, 24)
 
-  var outBuf = Buffer.alloc(encodingLength(payload))
-
-  outBuf.set(magic, 0)
-  outBuf.set(commandBuf, 4)
-  outBuf.set(length, 16)
-  outBuf.set(checkSum, 20)
-  outBuf.set(payload, 24)
-
-  return outBuf
+  return buf
 }
 
 function decode (buf, offset) {
@@ -94,6 +85,7 @@ function decode (buf, offset) {
 }
 
 function encodingLength (payload) {
+  if (!Buffer.isBuffer(payload)) payload = Buffer.from(payload)
   return payload.byteLength + 24
 }
 
