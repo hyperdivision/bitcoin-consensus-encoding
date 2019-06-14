@@ -7,6 +7,7 @@ module.exports = {
 }
 
 function encode (bool, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   assert(typeof bool === 'boolean', 'bool must be a boolean')
   if (!buf) buf = Buffer.alloc(1)
   if (!offset) offset = 0

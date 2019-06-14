@@ -8,6 +8,7 @@ module.exports = {
 }
 
 function encode (string, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   if (!buf) buf = Buffer.alloc(encodingLength(string))
   if (!offset) offset = 0
 

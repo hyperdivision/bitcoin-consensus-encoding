@@ -7,6 +7,7 @@ var int = require('./int.js')
 
 // encode hashmap with key/value types specified - numbers: 0, strings: 1
 function encode (hashmap, keyType, valueType, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
   var length = encodingLength(hashmap, keyType, valueType)
   if (!buf) buf = Buffer.alloc(length)

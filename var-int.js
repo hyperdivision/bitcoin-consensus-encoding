@@ -8,6 +8,7 @@ module.exports = {
 }
 
 function encode (number, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   // eslint-disable-next-line valid-typeof
   assert(Number.isInteger(number) || typeof number === 'bigint', 'input must be of type Integer')
   // HACK: Using the BigInt function to get around standard for now

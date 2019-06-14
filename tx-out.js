@@ -9,6 +9,7 @@ module.exports = {
 }
 
 function encode (value, script, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   assert(value <= 0xffffffff, 'transaction value cannot exceed 64bits')
   assert(script, 'output script must be provided')
 

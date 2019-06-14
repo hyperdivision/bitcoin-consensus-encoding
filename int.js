@@ -51,6 +51,7 @@ function encodingLength (bits) {
 }
 
 function decode (buf, offset, byteLength, unsigned = true) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
   if (!byteLength) byteLength = buf.byteLength - offset

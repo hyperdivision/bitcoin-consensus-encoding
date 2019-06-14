@@ -6,6 +6,7 @@ module.exports = {
   encodingLength: encodingLength
 }
 
+// encode command as a null-padded 12 byte sequence of characters
 function encode (command, buf, offset) {
   assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   if (!buf) buf = Buffer.alloc(12)

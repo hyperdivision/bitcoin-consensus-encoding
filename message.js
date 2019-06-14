@@ -20,6 +20,7 @@ var magicValues = {
 }
 
 function encode (payload, inputCommand, network, buf, offset) {
+  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
   if (!Buffer.isBuffer(payload)) {
     assert(typeof payload === 'string', 'payload must be sequence of characters')
     payload = Buffer.from(payload)
