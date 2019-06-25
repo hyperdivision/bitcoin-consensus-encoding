@@ -1,6 +1,6 @@
 var assert = require('nanoassert')
 var int = require('./int.js')
-var string = require('./string.js')
+var script = require('./script.js')
 
 module.exports = {
   encode: encode,
@@ -18,7 +18,7 @@ function encode (value, script, buf, offset) {
 
   int.encode(value, buf, offset, 64)
   offset += 8
-  string.encode(script, buf, offset)
+  script.encode(script, buf, offset)
 
   return buf
 }
@@ -27,15 +27,15 @@ function decode (buf, offset) {
   var value = int.decode(buf, offset, 64, false)
   offset += int.decode.bytes
 
-  var script = string.decode(buf, offset)
+  var txScript = script.decode(buf, offset)
 
   return {
     value: value,
-    script: script
+    script: txScript
   }
 }
 
 function encodingLength (script) {
-  var length = Buffer.from(script).byteLength
-  return length + 4
+  var length = script.encodingLength(script)
+  return length + 8
 }
