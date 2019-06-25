@@ -10,8 +10,8 @@ module.exports = {
 
 var map = {}
 
-for (var op of OPS) {
-  if (op.contains('OP_PUSHDATA')) {
+for (var op in OPS) {
+  if (op === 'OP_PUSHDATA') {
     break
   }
 
@@ -20,24 +20,25 @@ for (var op of OPS) {
 }
 
 function encode (script, buf, offset) {
-  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
+  assert(typeof script === 'string' || Buffer.isBuffer(script),
+    'script must be input as string or buffer')
+  assert(!buf || offset === 0,
+    'offset must be specified to overwrite buf')
   if (!buf) buf = Buffer.alloc(encodingLength(script))
   if (!offset) offset = 0
 
   if (typeof script === 'string') {
-    var scriptArray = script.split('')
+    var scriptArray = script.split(' ')
   }
-
   for (var entry of scriptArray) {
     if (entry.substring(0, 3) === 'OP_') {
       entry = entry.substring(3)
     }
-
     // replace OP strings with hex code
-    if (OPS.includes('OP_' + entry)) {
-      buf.readUInt8(OPS[parseInt(entry)])
+    if (OPS.hasOwnProperty('OP_' + entry)) {
+      entry = 'OP_' + entry
+      buf.writeUInt8(OPS[entry], offset)
       offset++
-      break
     } else {
       entry = format(entry)
       buf.set(entry, offset)
@@ -49,51 +50,49 @@ function encode (script, buf, offset) {
 
 function format (entry) {
   format.bytes = 0
-  entry = Buffer.from(entry, 'hex')
-
+  entry = Buffer.from(entry, 'utf8')
+  // entry must be <76 bytes or else OP_PUSHDATA required
   var prefix = prefixLength(entry)
-
-  var prefixBytes = prefix ? 1 : 0
-  var entryLength = prefixBytes + entry.byteLength
+  var entryLength = prefixLength.bytes + entry.byteLength
   format.bytes += entryLength
 
-  writeBuf = Buffer.alloc(entryLength)
+  var writeBuf = Buffer.alloc(entryLength)
 
-  if (prefix) writeBuf.writeUInt8(prefix)
-  writeBuf.set(entry, prefixbytes)
+  writeBuf.set(prefix)
+  writeBuf.set(entry, prefixLength.bytes)
 
   return writeBuf
 }
 
 function decode (buf, offset) {
-  var script
+  if (!offset) offset = 0
+  var script = ''
+  var pushDataOps = [0x4c, 0x4d, 0x4e]
 
   while (offset < buf.byteLength) {
     var byte = buf.readUInt8(offset)
     offset++
 
-    if (map.hasOwnProperty(byte)) {
-      script += map[byte] + '\n'
-      offset++
-    } else {
+    if (pushDataOps.includes(byte) || !(map.hasOwnProperty(byte))) {
       var data = pushData(byte, buf.subarray(offset))
-      script += data.toString('hex') + '\n'
+      script += data.toString('utf8') + '\n'
       offset += pushData.bytes
+    } else {
+      script += map[byte] + '\n'
     }
   }
   return script
 }
 
 function encodingLength (script) {
-  length = 0
-  var scriptArray = script.split('')
+  var length = 0
+  var scriptArray = script.split(' ')
 
   for (var entry of scriptArray) {
     if (entry.substring(0, 3) === 'OP_') {
       entry = entry.substring(3)
     }
-
-    if (OPS.includes('OP_' + entry)) {
+    if (OPS.hasOwnProperty('OP_' + entry)) {
       length++
     } else {
       entry = format(entry)
@@ -105,55 +104,61 @@ function encodingLength (script) {
 
 function prefixLength (entry) {
   var length = int.encode(entry.byteLength)
-  var prefix
+  var prefix = new Uint8Array(1)
 
   switch (true) {
     case (int.encode.bytes === 1 && length > 0xfb) : {
-      prefix = 0x4c
+      prefix[0] = 0x4c
       break
     }
 
     case (int.encode.bytes === 1) : {
-      prefix.bytes = 0
-      return
+      prefixLength.bytes = 1
+      return length
     }
 
     case (int.encode.bytes === 2) : {
-      prefix = 0x4d
+      prefix[0] = 0x4d
       break
     }
 
     case (int.encode.bytes === 4) : {
-      prefix = 0x4e
+      prefix[0] = 0x4e
       break
     }
   }
+  prefixLength.bytes = 1 + int.encode.bytes
+  prefix = Buffer.concat([prefix, length])
   return prefix
 }
 
 function pushData (byte, buf) {
   var length, start
+  switch (true) {
+    case (byte < 76) : {
+      start = 0
+      length = byte
+      break
+    }
 
-  switch (byte) {
-    case 76 : {
+    case byte === 76 : {
       start = 1
       length = buf.readUInt8()
       break
     }
 
-    case 77 : {
+    case byte === 77 : {
       start = 2
       length = buf.readUInt16LE()
       break
     }
 
-    case 78 : {
+    case byte === 78 : {
       start = 4
       length = buf.readUInt32LE()
       break
     }
   }
-
   var end = start + length
   pushData.bytes = end
   return buf.subarray(start, end)

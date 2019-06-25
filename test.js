@@ -1,8 +1,12 @@
 const test = require('tape')
 var varint = require('./var-int.js')
 var string = require('./string.js')
-var booler = require('./boolean.js')
+var bool = require('./boolean.js')
+var script = require('./scirpt.js')
 var fs = require('fs')
+
+var exampleScript = fs.readFileSync('./example.script')
+var encodedScript =  Buffer.from('76a90c3c7075626b6579686173683e88ac')
 
 test('varint encode', function (assert) {
   assert.throws(() => varint.encode(null))
@@ -44,18 +48,58 @@ test('varint decode', function (assert) {
   assert.end()
 })
 
-test.only('string encode', function (assert) {
+test('string encode', function (assert) {
   assert.throws(() => string.encode(null))
   assert.ok(string.encode.bytes == null)
-  assert.throws(() => stirng.encode(false))
+  assert.throws(() => string.encode(false))
   assert.ok(string.encode.bytes == null)
   assert.throws(() => string)
   assert.ok(string.encode.bytes == null)
 
   assert.same(string.encode("Andrew".toString()), Buffer.from([0x41, 0x6e, 0x64, 0x72, 0x65, 0x77]))
+  assert.end()
 })
 
+test('script decode', function (assert) {
+  assert.throws(() => string.decode(null))
+  assert.ok(string.decode.bytes == null)
+  assert.throws(() => string.decode(false))
+  assert.ok(string.decode.bytes == null)
+  assert.throws(() => string)
+  assert.ok(string.decode.bytes == null)
+})
+
+test('script encode', function (assert) {
+  assert.throws(() => script.encode(null))
+  assert.ok(script.encode.bytes == null)
+  assert.throws(() => script.encode(false))
+  assert.ok(script.encode.bytes == null)
+  assert.throws(() => script)
+  assert.ok(script.encode.bytes == null)
+  assert.end()
+
+  assert.deepEqual(script.encode(exampleScript), encodedScript)
+  assert.end()
+})
+
+test('script decode', function (assert) {
+  assert.throws(() => script.decode(null))
+  assert.ok(script.decode.bytes == null)
+  assert.throws(() => script.decode(false))
+  assert.ok(script.decode.bytes == null)
+  assert.throws(() => script)
+  assert.ok(script.decode.bytes == null)
+
+  assert.equal(script.decode(encodedScript), exampleScript)
+  assert.end()
+})
+
+test('tx-out encode', function (assert) {
+
+})
 return
+
+
 // varint.decode
 try {
   console.log(varint.decode(Buffer.from(null)))
