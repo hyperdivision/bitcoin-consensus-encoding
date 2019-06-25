@@ -9,13 +9,18 @@ module.exports = {
 
 function encode (number, buf, offset, bits) {
   var validBits = [8, 16, 32, 64]
-  assert(validBits.includes(bits), 'bit length not supported')
   var stringLength = number.toString(2).length
-  var bitLength = number < 0 ? stringLength : stringLength - 1
-  assert(bitLength < bits, 'too few bits provided')
-  var encodingLength = encodingLength(bits)
+  var bitLength = number > 0 ? stringLength : stringLength - 1
+  if (bits) {
+    assert(bitLength < bits, 'too few bits provided')
+  } else {
+    assert(bitLength < 64, 'number outside range')
+    bits = validBits.find((element) => element >= bitLength)
+  }
+  assert(validBits.includes(bits), 'bit length not supported')
+  var length = encodingLength(bits)
 
-  if (!buf) buf = Buffer.alloc(encodingLength)
+  if (!buf) buf = Buffer.alloc(length)
   if (!offset) offset = 0
 
   switch (bits) {
@@ -42,7 +47,7 @@ function encode (number, buf, offset, bits) {
     }
   }
 
-  encode.bytes = encodingLength
+  encode.bytes = length
   return buf
 }
 
