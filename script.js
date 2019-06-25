@@ -28,7 +28,6 @@ function encode (script, buf, offset) {
     var scriptArray = script.split('')
   }
 
-  // TODO: move this to separate function, should be usesable for encodingLength
   for (var entry of scriptArray) {
     if (entry.substring(0, 3) === 'OP_') {
       entry = entry.substring(3)
@@ -40,20 +39,30 @@ function encode (script, buf, offset) {
       offset++
       break
     } else {
-      entry = Buffer.from(entry, 'hex')
-
-      var prefix = prefixLength(entry)
-
-      if (prefix) {
-        buf.readUInt8(prefix, offset)
-        offset++
-      }
-
+      entry = format(entry)
       buf.set(entry, offset)
-      offset = entry.byteLength
+      offset += format.bytes
     }
   }
   return buf
+}
+
+function format (entry) {
+  format.bytes = 0
+  entry = Buffer.from(entry, 'hex')
+
+  var prefix = prefixLength(entry)
+
+  var prefixBytes = prefix ? 1 : 0
+  var entryLength = prefixBytes + entry.byteLength
+  format.bytes += entryLength
+
+  writeBuf = Buffer.alloc(entryLength)
+
+  if (prefix) writeBuf.writeUInt8(prefix)
+  writeBuf.set(entry, prefixbytes)
+
+  return writeBuf
 }
 
 function decode (buf, offset) {
@@ -76,7 +85,22 @@ function decode (buf, offset) {
 }
 
 function encodingLength (script) {
+  length = 0
+  var scriptArray = script.split('')
 
+  for (var entry of scriptArray) {
+    if (entry.substring(0, 3) === 'OP_') {
+      entry = entry.substring(3)
+    }
+
+    if (OPS.includes('OP_' + entry)) {
+      length++
+    } else {
+      entry = format(entry)
+      length += format.bytes
+    }
+  }
+  return length
 }
 
 function prefixLength (entry) {
