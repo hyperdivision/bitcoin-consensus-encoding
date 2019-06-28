@@ -26,23 +26,24 @@ function encode (number, buf, offset, bits) {
   switch (bits) {
     case 64 : {
       assert(typeof number === 'bigint', '64-bit input must be instance of BigInt')
-      number = number > 0 ? number : number + 2n ** 64n
-      bigUIntLE.encode(number, buf, offset)
+      number = number >= 0 ? number : number + 2n ** 64n
+      var writeBuf = bigUIntLE.encode(number, null, null)
+      buf.set(writeBuf, offset)
       break
     }
 
     case 32 : {
-      buf.writeInt32LE(number)
+      buf.writeInt32LE(number, offset)
       break
     }
 
     case 16 : {
-      buf.writeInt16LE(number)
+      buf.writeInt16LE(number, offset)
       break
     }
 
     case 8 : {
-      buf.writeInt8(number)
+      buf.writeInt8(number, offset)
       break
     }
   }
@@ -56,34 +57,36 @@ function encodingLength (bits) {
 }
 
 function decode (buf, offset, byteLength, unsigned = true) {
-  assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
+  assert(!(buf && offset === 0), 'offset must be specified to overwrite buf')
   assert(Buffer.isBuffer(buf), 'buf must be an instance of Buffer')
   if (!offset) offset = 0
-  if (!byteLength) byteLength = buf.byteLength - offset
+  if (!byteLength) {
+    byteLength = buf.byteLength - offset
+  }
   assert(byteLength <= 8, 'input buffer must be at most 8 bytes')
 
   var result
-
+  decode.bytes = byteLength
   switch (byteLength) {
     case 8 : {
-      var low = BigInt(buf.readUInt32LE())
-      var high = BigInt(buf.readUInt32LE(4)) * 256n ** 4n
+      var low = BigInt(buf.readUInt32LE(offset))
+      var high = BigInt(buf.readUInt32LE(offset + 4)) * 256n ** 4n
 
       result = high + low
-      unsigned = result < 2n ** 63n ? false : unsigned
+      unsigned = result < 2n ** 63n ? true : false
       return unsigned ? result : result - 2n ** 64n
     }
 
     case 4 : {
-      return buf.readInt32LE()
+      return buf.readInt32LE(offset)
     }
 
     case 2 : {
-      return buf.readInt16LE()
+      return buf.readInt16LE(offset)
     }
 
     case 1 : {
-      return buf.readInt8()
+      return buf.readInt8(offset)
     }
   }
 }

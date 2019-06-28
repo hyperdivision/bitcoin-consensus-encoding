@@ -63,8 +63,6 @@ function encode (header, buf, offset) {
     offset++
   }
 
-  console.log(offset)
-
   string.encode(header['issuance_utxo'], buf, offset, true)
   offset += string.encode.bytes
 
@@ -75,10 +73,9 @@ function encode (header, buf, offset) {
   offset += int.encode.bytes
 
   int.encode(BigInt(header['min_amount']), buf, offset, 64)
-  console.log(int.encode(BigInt(header['min_amount']), null, null, 64))
   offset += int.encode.bytes
 
-  if (header['max_hops']) {
+  if (header['max_hops'] || header['max_hops'] === 0) {
     int.encode(header['max_hops'], buf, offset, 32)
     offset += int.encode.bytes
   } else {
@@ -113,84 +110,41 @@ function encode (header, buf, offset) {
   return buf
 }
 
-// function encode (header, buf, offset) {
-//   if (!buf) buf = Buffer.alloc(encodingLength(header))
-//   if (!offset) offset = 0
-
-//   for (var key in headerKeys) {
-//     console.log(key, 'check')
-//     var bits
-//     var type = headerKeys[key]
-//     if (types[type] === int) bits = parseInt(type.substring(3))
-
-//     if (optionals.includes(key)) {
-//       if (type === 'string') {
-//         if (header.hasOwnProperty(key)) {
-//           console.log(offset, key, header[key], buf, (!buf || offset !== 0))
-//           string.encode(header[key], buf, offset)
-//         } else {
-//           string.encode('', buf, offset)
-//         }
-//         offset += string.encode.bytes
-//       } else {
-//         if (header.hasOwnProperty(key)) {
-//           buf.writeUInt8(1, offset)
-//           int.encode(header[key], buf, offset, bits)
-//           offset += int.encode.bytes + 1
-//         } else {
-//           buf.writeUInt8(0, offset)
-//           offset++
-//         }
-//       }
-//     } else {
-//       if (types[type] === 'int') {
-//         bits = parseInt(type.substring(3))
-//         types[type].encode(header[key], buf, offset, bits)
-//         offset += types[type].encode.bytes
-//       } else if (type === 'bytes') {
-//         string.encode(header[key], buf, offset, true)
-//         offset += string.encode.bytes
-//       } else {
-//         console.log(type, buf.subarray(30))
-//         types[type].encode(header[key], buf, offset)
-//         offset += types[type].encode.bytes
-//       }
-//     }
-//   }
-// }
-
 function decode (buf, offset) {
   if (!offset) offset = 0
   var contract = {}
-  console.log(offset)
+  // console.log(offset)
 
   contract['title'] = string.decode(buf, offset)
   offset += string.decode.bytes
-  console.log(offset)
+  // console.log(offset, 'title')
 
   contract['version'] = int.decode(buf, offset, 2)
   offset += int.decode.bytes
+  // console.log(offset, 'version')
 
   contract['description'] = string.decode(buf, offset)
   offset += string.decode.bytes
+  // console.log(offset, 'description')
 
   contract['contract_url'] = string.decode(buf, offset)
   offset += string.decode.bytes
-  console.log(offset)
+  // console.log(offset, 'contract_url')
 
-  contract['issuance_utxo'] = string.decode(buf, offset, 5)
-  console.log(buf.subarray(offset, offset + 5), buf.subarray(offset, offset + 5).toString())
-  offset += 5
+  contract['issuance_utxo'] = string.decode(buf, offset, 3)
+  offset += string.decode.bytes
 
-  contract['network'] = string.decode(buf, offset, 5)
-  offset += 5
+  contract['network'] = string.decode(buf, offset, 3)
+  offset += string.decode.bytes
+  // console.log(offset, 'network', buf.subarray(offset - 3, offset))
 
   contract['total_supply'] = int.decode(buf, offset, 8)
-  console.log(offset, buf.subarray(offset, offset + 8), 'boo')
   offset += int.decode.bytes
+  // console.log(offset, 'total_supply')
 
   contract['min_amount'] = int.decode(buf, offset, 8)
   offset += int.decode.bytes
+  // console.log(offset, 'min_amount')
 
   contract['max_hops'] = int.decode(buf, offset, 4)
   offset += int.decode.bytes
@@ -200,7 +154,6 @@ function decode (buf, offset) {
 
   contract['reissuance_utxo'] = string.decode(buf, offset)
   offset += string.decode.bytes
-  console.log(string.decode.bytes, 'problem')
 
   contract['burn_address'] = string.decode(buf, offset)
   offset += string.decode.bytes
@@ -211,70 +164,8 @@ function decode (buf, offset) {
   contract['blueprint_type'] = string.decode(buf, offset)
   offset += string.decode.bytes
 
-  // for (var key of Object.keys(headerKeys)) {
-  //   var type = headerKeys[key]
-  //   var byteLength
-  //   console.log(offset, key)
-
-  //   switch (type) {
-  //     case 'int16' : {
-  //       byteLength = 2
-  //       break
-  //     }
-
-  //     case 'int32' : {
-  //       byteLength = 4
-  //       break
-  //     }
-
-  //     case 'int64' : {
-  //       byteLength = 8
-  //       break
-  //     }
-  //   }
-
-  //   if (optionals.includes(key)) {
-  //     if (!buf.readUInt8(offset)) {
-  //       offset++
-  //     } else if (types[type] === int) {
-  //       contract[key] = int.decode(buf, offset, 4)
-  //       offset += int.decode.bytes
-  //     } else {
-  //       contract[key] = types[type].decode(buf, offset - 2)
-  //       offset += types[type].decode.bytes
-  //     }
-  //   } else {
-  //     if (types[type] === int) {
-  //       contract[key] = int.decode(buf, offset, byteLength)
-  //       offset += int.decode.bytes
-  //     } else {
-  //       contract[key] = types[type].decode(buf, offset)
-  //       offset += types[type].decode.bytes
-  //     }
-  //   }
-  // }
   return contract
 }
-
-// function encodingLength (header) {
-//   var length = 0
-//   console.log(headerKeys)
-//   for (var key in headerKeys) {
-//     console.log(length, key)
-//     if (Object.keys(header).includes(key)) {
-//       var type = headerKeys[key]
-//       if (type === 'bytes') {
-//         length += header[key].length / 2
-//       } else {
-//         types[type].encode(header[key])
-//         length += types[type].encode.bytes
-//       }
-//     }
-//     if (optionals.includes(key)) length++
-//   }
-//   console.log(length)
-//   return length
-// }
 
 function encodingLength (header) {
   var length = 0
@@ -323,46 +214,3 @@ var encoded = encode(header)
 console.log(encoded.toString('hex'))
 var decoded = decode(encoded)
 console.log(decoded)
-
-// now redundant
-// function encoder (header, key, buf, offset) {
-//   switch (headerKeys[key].substring(0, 3)) {
-//     case 'str' : {
-//       if (!header.hasOwnProperty(key)) {
-//         string.encode('', buf, offset)
-//       }
-//       string.encode(header[key], buf, offset)
-//       return string.encode.bytes
-//     }
-
-//     case 'int' : {
-//       var bits = parseInt(headerField[key].substring(3))
-//       var flag = 0
-
-//       // correctly format
-//       if (key == 'max_hops' && header.hasOwnProperty(key)) {
-//         buf.writeUInt8(1, offset)
-//         flag++
-//       } else if (key = 'max_hops') {
-//         buf.writeUInt8(0, offset)
-//         return 1
-//         break
-//       }
-
-//       int.encode(header[key], buf, offset, bits)
-//       return int.encode.bytes + flag
-//     }
-
-//     case 'boo' : {
-//       bool.encode(header[key], buf, offset)
-//       return bool.encode.bytes
-//     }
-
-//     case 'byt' : {
-//       buf.set(header[key], offset)
-//       return header[key].byteLength
-//     }
-//   }
-// }
-
-
