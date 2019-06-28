@@ -4,11 +4,12 @@ var varint = require('./var-int.js')
 var string = require('./string')
 var boolean = require('./boolean.js')
 var int = require('./int.js')
+var contract = require('./contract.json')
 
 // encode hashmap with key/value types specified - numbers: 0, strings: 1
 function encode (hashmap, keyType, valueType, buf, offset) {
   assert(!buf || offset === 0, 'offset must be specified to overwrite buf')
-  assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
+  // assert(hashmap instanceof Map, 'hashmap must be an instance of Map')
   var length = encodingLength(hashmap, keyType, valueType)
   if (!buf) buf = Buffer.alloc(length)
   if (!offset) offset = 0
@@ -58,7 +59,7 @@ function decode (buf, keyType, valueType, offset) {
 // requires double computing as the length of each entry is unknown
 function encodingLength (hashmap, keyType, valueType) {
   var length = 8
-  for (var [key, value] of hashmap) {
+  for (var [key, value] in hashmap) {
     encodeItem(key, keyType)
     length += encodeItem.bytes
 

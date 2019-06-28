@@ -10,11 +10,11 @@ module.exports = {
 
 var map = {}
 
+// make reverse map for decoding
 for (var op in OPS) {
   if (op === 'OP_PUSHDATA') {
     break
   }
-
   var code = OPS[op]
   map[code] = op
 }
@@ -30,6 +30,7 @@ function encode (script, buf, offset) {
   if (typeof script === 'string') {
     var scriptArray = script.split(' ')
   }
+
   for (var entry of scriptArray) {
     if (entry.substring(0, 3) === 'OP_') {
       entry = entry.substring(3)
@@ -48,26 +49,13 @@ function encode (script, buf, offset) {
   return buf
 }
 
-function format (entry) {
-  format.bytes = 0
-  entry = Buffer.from(entry, 'utf8')
-  // entry must be <76 bytes or else OP_PUSHDATA required
-  var prefix = prefixLength(entry)
-  var entryLength = prefixLength.bytes + entry.byteLength
-  format.bytes += entryLength
-
-  var writeBuf = Buffer.alloc(entryLength)
-
-  writeBuf.set(prefix)
-  writeBuf.set(entry, prefixLength.bytes)
-
-  return writeBuf
-}
-
 function decode (buf, offset) {
   if (!offset) offset = 0
   var script = ''
   var pushDataOps = [0x4c, 0x4d, 0x4e]
+
+  // handle OP_RETURN
+  if (buf.readUInt8(0) === 0x6a) return buf.toString('hex', 1)
 
   while (offset < buf.byteLength) {
     var byte = buf.readUInt8(offset)
@@ -81,6 +69,7 @@ function decode (buf, offset) {
       script += map[byte] + '\n'
     }
   }
+
   return script
 }
 
@@ -102,6 +91,23 @@ function encodingLength (script) {
   return length
 }
 
+// encoding format raw data to be put onto stack as bytes
+function format (entry) {
+  format.bytes = 0
+  entry = Buffer.from(entry, 'utf8')
+  var prefix = prefixLength(entry)
+  var entryLength = prefixLength.bytes + entry.byteLength
+  format.bytes += entryLength
+
+  var writeBuf = Buffer.alloc(entryLength)
+
+  writeBuf.set(prefix)
+  writeBuf.set(entry, prefixLength.bytes)
+
+  return writeBuf
+}
+
+// prefix data to be put onto stack with length field
 function prefixLength (entry) {
   var length = int.encode(entry.byteLength)
   var prefix = new Uint8Array(1)
@@ -132,6 +138,7 @@ function prefixLength (entry) {
   return prefix
 }
 
+// read raw data from stack according to OP_PUSHDATA codes
 function pushData (byte, buf) {
   var length, start
   switch (true) {

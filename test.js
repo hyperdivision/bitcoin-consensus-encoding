@@ -5,7 +5,7 @@ var bool = require('./boolean.js')
 var script = require('./scirpt.js')
 var fs = require('fs')
 
-var exampleScript = fs.readFileSync('./example.script')
+var exampleScript = fs.readFileSync('./example.contract')
 var encodedScript =  Buffer.from('76a90c3c7075626b6579686173683e88ac')
 
 test('varint encode', function (assert) {
@@ -99,7 +99,11 @@ test('tx-out encode', function (assert) {
 })
 return
 
-
+var exampleScript = fs.readFileSync('./contract.script').toString()
+var encoded = encode(exampleScript)
+console.log(encoded.toString('hex'))
+var decoded = decode(encoded)
+console.log(decoded)
 // varint.decode
 try {
   console.log(varint.decode(Buffer.from(null)))
