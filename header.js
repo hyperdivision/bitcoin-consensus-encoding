@@ -1,111 +1,78 @@
 var string = require('./string.js')
 var int = require('./int.js')
 var bool = require('./boolean.js')
-var fs = require('fs')
-var header = require('./example.json')
+var contract = require('./example.json')
 
-var headerKeys = {
-  'title': 'string',
-  'version': 'int16',
-  'description': 'string',
-  'contract_url': 'string',
-  'issuance_utxo': 'bytes',
-  'network': 'bytes',
-  'total_supply': 'int64',
-  'min_amount': 'int64',
-  'max_hops': 'int32',
-  'reissuance_enabled': 'bool',
-  'reissuance_utxo': 'string',
-  'burn_address': 'string',
-  'commitment_scheme': 'string',
-  'blueprint_type': 'string'
-}
-
-var optionals = [
-  'description',
-  'contract_url',
-  'max_hops',
-  'reissuance_utxo',
-  'burn_address'
-]
-
-var types = {
-  'string': string,
-  'int16': int,
-  'int32': int,
-  'int64': int,
-  'bool': bool
-}
-
-function encode (header, buf, offset) {
-  if (!buf) buf = Buffer.alloc(encodingLength(header))
+function encode (contract, buf, offset) {
+  if (!buf) buf = Buffer.alloc(encodingLength(contract))
   if (!offset) offset = 0
 
-  string.encode(header['title'], buf, offset)
+  string.encode(contract['title'], buf, offset)
   offset += string.encode.bytes
 
-  int.encode(header['version'], buf, offset, 16)
+  int.encode(contract['version'], buf, offset, 16)
   offset += int.encode.bytes
 
-  if (header['description']) {
-    string.encode(header['description'], buf, offset)
+  if (contract['description']) {
+    string.encode(contract['description'], buf, offset)
     offset += string.encode.bytes
   } else {
     string.encode('', buf, offset)
     offset++
   }
 
-  if (header['contract_url']) {
-    string.encode(header['contract_url'], buf, offset)
+  if (contract['contract_url']) {
+    string.encode(contract['contract_url'], buf, offset)
     offset += string.encode.bytes
   } else {
     string.encode('', buf, offset)
     offset++
   }
 
-  string.encode(header['issuance_utxo'], buf, offset, true)
+  string.encode(contract['issuance_utxo'], buf, offset, true)
   offset += string.encode.bytes
 
-  string.encode(header['network'], buf, offset, true)
+  string.encode(contract['network'], buf, offset, true)
   offset += string.encode.bytes
 
-  int.encode(BigInt(header['total_supply']), buf, offset, 64)
+  int.encode(BigInt(contract['total_supply']), buf, offset, 64)
   offset += int.encode.bytes
 
-  int.encode(BigInt(header['min_amount']), buf, offset, 64)
+  int.encode(BigInt(contract['min_amount']), buf, offset, 64)
   offset += int.encode.bytes
 
-  if (header['max_hops'] || header['max_hops'] === 0) {
-    int.encode(header['max_hops'], buf, offset, 32)
+  if (contract['max_hops'] || contract['max_hops'] === 0) {
+    int.encode(contract['max_hops'], buf, offset, 32)
     offset += int.encode.bytes
   } else {
     buf.writeUInt8(0, offset)
     offset++
   }
 
-  bool.encode(header['reissuance_enabled'], buf, offset)
+  bool.encode(contract['reissuance_enabled'], buf, offset)
   offset += bool.encode.bytes
 
-  if (header['reissuance_utxo']) {
-    string.encode(header['reissuance_utxo'], buf, offset)
+  if (contract['reissuance_utxo']) {
+    string.encode(contract['reissuance_utxo'], buf, offset)
     offset += string.encode.bytes
   } else {
     string.encode('', buf, offset)
     offset++
   }
 
-  if (header['burn_address']) {
-    string.encode(header['burn_address'], buf, offset)
+  if (contract['burn_address']) {
+    string.encode(contract['burn_address'], buf, offset)
     offset += string.encode.bytes
   } else {
     string.encode('', buf, offset)
     offset++
   }
 
+  string.encode(contract['commitment_scheme'], buf, offset, true)
   offset += string.encode.bytes
 
-  string.encode(header['blueprint_type'], buf, offset)
-  offset += string.encode.byt
+  string.encode(contract['blueprint_type'], buf, offset, true)
+  offset += string.encode.bytes
 
   return buf
 }
@@ -158,59 +125,59 @@ function decode (buf, offset) {
   contract['burn_address'] = string.decode(buf, offset)
   offset += string.decode.bytes
 
-  contract['commitment_scheme'] = string.decode(buf, offset)
+  contract['commitment_scheme'] = string.decode(buf, offset, 1)
   offset += string.decode.bytes
 
-  contract['blueprint_type'] = string.decode(buf, offset)
+  contract['blueprint_type'] = string.decode(buf, offset, 1)
   offset += string.decode.bytes
 
   return contract
 }
 
-function encodingLength (header) {
+function encodingLength (contract) {
   var length = 0
-  length += string.encodingLength(header['title'])
+  length += string.encodingLength(contract['title'])
   length += int.encodingLength(16)
-  if (header['description']) {
-    length += string.encodingLength(header['description'])
+  if (contract['description']) {
+    length += string.encodingLength(contract['description'])
   } else {
     length++
   }
-  if (header['contract_url']) {
-    length += string.encodingLength(header['contract_url'])
+  if (contract['contract_url']) {
+    length += string.encodingLength(contract['contract_url'])
   } else {
     length++
   }
-  const issuanceUTXObytes = Buffer.from(header['issuance_utxo'])
+  const issuanceUTXObytes = Buffer.from(contract['issuance_utxo'])
   length += issuanceUTXObytes.byteLength
-  const networkBytes = Buffer.from(header['network'])
+  const networkBytes = Buffer.from(contract['network'])
   length += networkBytes.byteLength
   length += int.encodingLength(64)
   length += int.encodingLength(64)
-  if (header['max_hops']) {
+  if (contract['max_hops']) {
     length += int.encodingLength(32)
   } else {
     length++
   }
   length += bool.encodingLength()
-  if (header['reissuance_utxo']) {
-    length += string.encodingLength(header['reissuance_utxo'])
+  if (contract['reissuance_utxo']) {
+    length += string.encodingLength(contract['reissuance_utxo'])
   } else {
     length++
   }
-  if (header['burn_address']) {
-    length += string.encodingLength(header['burn_address'])
+  if (contract['burn_address']) {
+    length += string.encodingLength(contract['burn_address'])
   } else {
     length++
   }
-  length += string.encodingLength(header['commitment_scheme'])
-  length += string.encodingLength(header['blueprint_type'])
+  length += string.encodingLength(contract['commitment_scheme'])
+  length += 1
 
   return length
 }
 
 // var exampleScript = fs.readFileSync('./example.contract')
-var encoded = encode(header)
+var encoded = encode(contract)
 console.log(encoded.toString('hex'))
 var decoded = decode(encoded)
 console.log(decoded)

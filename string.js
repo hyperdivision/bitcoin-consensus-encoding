@@ -30,9 +30,14 @@ function encode (string, buf, offset, bytes = false) {
   return buf
 }
 
-function encodingLength (string) {
+function encodingLength (string, bytes = false) {
   if (Buffer.isBuffer(string) === false) string = Buffer.from(string)
-  return varint.encodingLength(string.byteLength) + string.byteLength
+
+  if (bytes) {
+    return string.byteLength
+  } else {
+    return varint.encodingLength(string.byteLength) + string.byteLength
+  }
 }
 
 function decode (buf, offset, bytes = false) {
