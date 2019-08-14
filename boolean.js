@@ -1,9 +1,9 @@
 var assert = require('nanoassert')
 
 module.exports = {
-  encode: encode,
-  decode: decode,
-  encodingLength: encodingLength
+  encode,
+  decode,
+  encodingLength
 }
 
 function encode (bool, buf, offset) {

@@ -3,9 +3,9 @@ var int = require('./int.js')
 var OPS = require('./opcodes.json')
 
 module.exports = {
-  encode: encode,
-  decode: decode,
-  encodingLength: encodingLength
+  encode,
+  decode,
+  encodingLength
 }
 
 var map = {}
@@ -24,6 +24,7 @@ function encode (script, buf, offset) {
     'script must be input as string or buffer')
   assert(!buf || offset === 0,
     'offset must be specified to overwrite buf')
+  if (Buffer.isBuffer(script)) script = script.toString('utf8')
   if (!buf) buf = Buffer.alloc(encodingLength(script))
   if (!offset) offset = 0
 
@@ -63,14 +64,14 @@ function decode (buf, offset) {
 
     if (pushDataOps.includes(byte) || !(map.hasOwnProperty(byte))) {
       var data = pushData(byte, buf.subarray(offset))
-      script += data.toString('utf8') + '\n'
+      script += data.toString('utf8') + ' '
       offset += pushData.bytes
     } else {
-      script += map[byte] + '\n'
+      script += map[byte] + ' '
     }
   }
 
-  return script
+  return script.trim(' ')
 }
 
 function encodingLength (script) {

@@ -2,9 +2,9 @@ var assert = require('nanoassert')
 var varint = require('./var-int.js')
 
 module.exports = {
-  encode: encode,
-  decode: decode,
-  encodingLength: encodingLength
+  encode,
+  decode,
+  encodingLength
 }
 
 function encode (string, buf, offset, bytes = false) {
@@ -31,11 +31,10 @@ function encode (string, buf, offset, bytes = false) {
 }
 
 function encodingLength (string, bytes = false) {
-  if (Buffer.isBuffer(string) === false) string = Buffer.from(string)
-
   if (bytes) {
-    return string.byteLength
+    return Buffer.from(string, 'hex').byteLength
   } else {
+    if (Buffer.isBuffer(string) === false) string = Buffer.from(string)
     return varint.encodingLength(string.byteLength) + string.byteLength
   }
 }

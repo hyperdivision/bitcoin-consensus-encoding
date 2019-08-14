@@ -1,10 +1,10 @@
 var assert = require('nanoassert')
-var bigUIntLE = require('biguintle')
+var int = require('./int.js')
 
 module.exports = {
-  encode: encode,
-  decode: decode,
-  encodingLength: encodingLength
+  encode,
+  decode,
+  encodingLength
 }
 
 function encode (number, buf, offset) {
@@ -30,7 +30,7 @@ function encode (number, buf, offset) {
   // 16 bit
   if (number < 0xffff) {
     buf.writeUInt8(0xfd, offset)
-    buf.writeUInt16LE(number, offset + 1)
+    buf.writeUInt16BE(number, offset + 1)
     encode.bytes = 3
     return buf
   }
@@ -38,14 +38,14 @@ function encode (number, buf, offset) {
   // 32 bit
   if (number < 0xffffffff) {
     buf.writeUInt8(0xfe, offset)
-    buf.writeUInt32LE(number, offset + 1)
+    buf.writeUInt32BE(number, offset + 1)
     encode.bytes = 5
     return buf
   }
 
   // 64 bit
   buf.writeUInt8(0xff, offset)
-  bigUIntLE.encode(BigInt(number), buf, offset + 1)
+  int.encode(BigInt(number), buf, offset + 1, 64)
   encode.bytes = 9
   return buf
 }
@@ -70,16 +70,16 @@ function decode (buf, offset) {
 
   if (first === 0xfd) {
     decode.bytes = 3
-    return buf.readUInt16LE(offset + 1)
+    return buf.readUInt16BE(offset + 1)
   }
 
   if (first === 0xfe) {
     decode.bytes = 5
-    return buf.readUInt32LE(offset + 1)
+    return buf.readUInt32BE(offset + 1)
   }
 
   if (first === 0xff) {
     decode.bytes = 9
-    return bigUIntLE.decode(buf, offset + 1, 8)
+    return int.decode(buf, offset + 1, 8)
   }
 }

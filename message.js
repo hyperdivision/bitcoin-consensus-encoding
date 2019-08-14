@@ -1,9 +1,6 @@
 var assert = require('nanoassert')
 var sodium = require('sodium-native')
-var varint = require('./var-int.js')
 var int = require('./int.js')
-var uint = require('./uint.js')
-var string = require('./string.js')
 var command = require('./command.js')
 
 module.exports = {

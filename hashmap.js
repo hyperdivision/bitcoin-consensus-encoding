@@ -1,10 +1,16 @@
 var assert = require('nanoassert')
-var bigUIntLE = require('biguintle')
+// var bigUIntLE = require('biguintle')
 var varint = require('./var-int.js')
 var string = require('./string')
-var boolean = require('./boolean.js')
+// var boolean = require('./boolean.js')
 var int = require('./int.js')
-var contract = require('./contract.json')
+// var contract = require('./contract.json')
+
+module.exports = {
+  encode,
+  decode,
+  encodingLength
+}
 
 // encode hashmap with key/value types specified - numbers: 0, strings: 1
 function encode (hashmap, keyType, valueType, buf, offset) {
@@ -21,8 +27,8 @@ function encode (hashmap, keyType, valueType, buf, offset) {
   offset += 8
 
   for (var [key, value] of hashmap) {
-    for (item of [key, value]) {
-      var encodedKey = encodeItem(key, keyType)
+    for (let item of [key, value]) {
+      var encodedKey = encodeItem(item, keyType)
       buf.set(encodedKey, offset)
 
       offset += encodeItem.bytes
@@ -43,7 +49,7 @@ function decode (buf, keyType, valueType, offset) {
   var hashmap = new Map()
   offset += 8
 
-  for (var i = 0; i < entries * 2n; i++) {
+  for (var i = 0; i < entries * 2; i++) {
     if (i % 2 === 0) {
       var key = decodeItem(buf, keyType, offset)
     } else {
