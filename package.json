@@ -1,6 +1,6 @@
 {
   "name": "bitcoin-consensus-encoding",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Abstract encoding for Bitcoin related objects",
   "main": "index.js",
   "publishConfig": {
