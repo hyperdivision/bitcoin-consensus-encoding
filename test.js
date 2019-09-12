@@ -1,12 +1,13 @@
 const test = require('tape')
-var varint = require('./var-int.js')
-var int = require('./int.js')
-var string = require('./string.js')
-// var bool = require('./boolean.js')
-var script = require('./script.js')
+var varint = require('./lib/var-int.js')
+var int = require('./lib/int.js')
+var string = require('./lib/string.js')
+// var bool = require('./lib/boolean.js')
+var script = require('./lib/script.js')
+var fvi = require('./lib/flag-var-int.js')
 var fs = require('fs')
 
-var exampleScript = fs.readFileSync('./example.script')
+var exampleScript = fs.readFileSync('./lib/example.script')
 var encodedScript = Buffer.from('76a90c3c7075626b6579686173683e88ac', 'hex')
 
 test('varint encode', function (assert) {
@@ -110,6 +111,12 @@ test('int', function (assert) {
   assert.equal(int.decode(Buffer.from('8000000000000000', 'hex'), null, 8), -BigInt('0x8000000000000000'))
   assert.end()
 })
+
+test('flag var-int', function (assert) {
+  assert.equal(fvi.decode(Buffer.from([0x7f])).flag === false)
+  assert.equal(fvi.decode(Buffer.from([0x7f])).value === 127)
+  assert.end()
+}
 
 // test('tx-out encode', function (assert) {
 
