@@ -9,6 +9,6 @@ module.exports = {
   outpoint: require('./lib/outpoint'),
   script: require('./lib/script'),
   string: require('./lib/string'),
-  txout: require('./lib/tx-out')
+  txout: require('./lib/tx-out'),
   varint: require('./lib/var-int')
 }
