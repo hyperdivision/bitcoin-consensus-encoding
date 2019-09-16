@@ -8,7 +8,7 @@ module.exports = {
   int: require('./lib/int'),
   message: require('./lib/message'),
   outpoint: require('./lib/outpoint'),
-  pubkey: require('./lib/pubkey')
+  pubkey: require('./lib/pubkey'),
   script: require('./lib/script'),
   signature: require('./lib/ecdsa-sig.js'),
   string: require('./lib/string'),
