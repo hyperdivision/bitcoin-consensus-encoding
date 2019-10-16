@@ -1,4 +1,5 @@
 module.exports = {
+  block: require('./lib/block'),
   boolean: require('./lib/boolean'),
   bytes: require('./lib/byte-string'),
   command: require('./lib/command'),
@@ -10,8 +11,11 @@ module.exports = {
   outpoint: require('./lib/outpoint'),
   pubkey: require('./lib/pubkey'),
   script: require('./lib/script'),
-  signature: require('./lib/ecdsa-sig.js'),
+  signature: require('./lib/ecdsa-sig'),
   string: require('./lib/string'),
+  txin: require('./lib/tx-in'),
   txout: require('./lib/tx-out'),
-  varint: require('./lib/var-int')
+  tx: require('./lib/tx'),
+  varint: require('./lib/var-int'),
+  witness: require('./lib/witness.js')
 }
