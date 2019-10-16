@@ -17,5 +17,5 @@ module.exports = {
   txout: require('./lib/tx-out'),
   tx: require('./lib/tx'),
   varint: require('./lib/var-int'),
-  witness: require('./lib/witness.js')
+  witness: require('./lib/witness')
 }
