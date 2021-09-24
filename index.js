@@ -3,6 +3,7 @@ module.exports = {
   boolean: require('./lib/boolean'),
   bytes: require('./lib/byte-string'),
   command: require('./lib/command'),
+  digest: require('./lib/sig-digest'),
   fvi: require('./lib/flag-var-int'),
   hash: require('./lib/hash'),
   hashmap: require('./lib/hashmap'),
